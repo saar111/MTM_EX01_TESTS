@@ -185,6 +185,9 @@ PriorityQueue pqCreate(CopyPQElement copy_element,
 }
 
 void pqDestroy(PriorityQueue queue) {
+	if (queue == NULL) {
+        return;
+    }
     pqClear(queue);
     free(queue->elements_list);
     free(queue);
