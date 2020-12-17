@@ -1102,6 +1102,7 @@ bool testRemoveEventsAndMembers_CreatorAdar() {
 }
 
 /* ========== TESTING testEMPrintAllEventsMembersTests ========== */
+/*
 bool testEMPrintAllEventsMembersTests_CreatorLiranLavi() {
     bool result = true;
     Date date = NULL;
@@ -1152,6 +1153,7 @@ bool testEMPrintAllEventsMembersTests_CreatorLiranLavi() {
     destroyEventManager(em);
     return result;
 }
+*/
 
 bool checkNegativeDate_CreatorAdam() {
     bool result = true;
@@ -1281,6 +1283,74 @@ bool testNegativeYearTwo_CreatorAdam() {
     destroyEventManager(em);
     return result;
 }
+bool testTickRemovePrintAndReturnVals_CreatorAdam() {
+    bool result = true;
+    Date startDate=dateCreate(27,1,2021);
+    EventManager em=createEventManager(startDate);
+    Date dateNew = NULL;
+
+    ASSERT_TEST(emAddEventByDiff(em, "merokavot",3, 0)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddEventByDiff(em, "mada7",18, 1)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddEventByDiff(em, "Matam (damn)",22, 2)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddEventByDiff(em, "Matam (damn)",22, 3)==EM_EVENT_ALREADY_EXISTS,destroyRemoveEventsAndMembers);//SAME NAME SAME DAY
+    ASSERT_TEST(emAddEventByDiff(em, "M3galim",31, 3)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(strcmp(emGetNextEvent(em),"merokavot")==0,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddMember(em, "adam1", 1)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddMember(em, "adam2", 2)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddMember(em, "adam3", 3)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddMember(em, "adam4", 4)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    for(int i=0; i<4 ;i++){
+        for(int j=1;j<=4 ;j++){
+            ASSERT_TEST(emAddMemberToEvent(em, j, i)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+        }
+    }
+    emPrintAllEvents(em, "test_monotonious_memberId.out.txt");
+    ASSERT_TEST(isFilePrintOutputCorrect("test_monotonious_memberId.out.txt",
+                                         "merokavot,30.1.2021,adam1,adam2,adam3,adam4\n"
+                                         "mada7,15.2.2021,adam1,adam2,adam3,adam4\n"
+                                         "Matam (damn),19.2.2021,adam1,adam2,adam3,adam4\n"
+                                         "M3galim,28.2.2021,adam1,adam2,adam3,adam4\n"),destroyRemoveEventsAndMembers);
+
+    emPrintAllResponsibleMembers(em,"test_same_number_of_events_with_id.out.txt");
+    ASSERT_TEST(isFilePrintOutputCorrect("test_same_number_of_events_with_id.out.txt",
+                                         "adam1,4\n"
+                                         "adam2,4\n"
+                                         "adam3,4\n"
+                                         "adam4,4\n"),destroyRemoveEventsAndMembers);
+
+    ASSERT_TEST(emTick(em, 4)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emGetEventsAmount(em)==3,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddEventByDiff(em, "Matam (damn)",27, 4)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    dateNew=dateCreate(28,2,2021);
+    ASSERT_TEST(emChangeEventDate(em, 4,dateNew)==EM_EVENT_ALREADY_EXISTS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emRemoveEvent(em, 4)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+
+    ASSERT_TEST(emChangeEventDate(em, 2,dateNew)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    emPrintAllResponsibleMembers(em, "members_after_changing_date.out.txt");
+    ASSERT_TEST(isFilePrintOutputCorrect("members_after_changing_date.out.txt",
+                                         "adam1,3\n"
+                                         "adam2,3\n"
+                                         "adam3,3\n"
+                                         "adam4,3\n"),destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emRemoveMemberFromEvent(em, 3, 1)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    emPrintAllEvents(em, "test_2.out.txt");
+    ASSERT_TEST(isFilePrintOutputCorrect("test_2.out.txt",
+                                         "mada7,15.2.2021,adam1,adam2,adam4\n"
+                                         "M3galim,28.2.2021,adam1,adam2,adam3,adam4\n"
+                                         "Matam (damn),28.2.2021,adam1,adam2,adam3,adam4\n"),destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emAddEventByDiff(em, "Matam (damn)",24, 4)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    ASSERT_TEST(emTick(em, 25)==EM_SUCCESS,destroyRemoveEventsAndMembers);
+    emPrintAllEvents(em, "test_3_memberId.out.txt");
+    ASSERT_TEST(isFilePrintOutputCorrect("test_3_memberId.out.txt",
+                                         "M3galim,28.2.2021,adam1,adam2,adam3,adam4\n"
+                                         "Matam (damn),28.2.2021,adam1,adam2,adam3,adam4\n"),destroyRemoveEventsAndMembers);
+
+    destroyRemoveEventsAndMembers:
+    dateDestroy(startDate);
+    dateDestroy(dateNew);
+    destroyEventManager(em);
+    return result;
+}
 
 #define TEST_NAMES \
     X(testEMCreateStandardTest) \
@@ -1317,9 +1387,9 @@ bool testNegativeYearTwo_CreatorAdam() {
     X(testBigEventManager_CreatorYanTomsinsky) \
     X(testChangeDate_CreatorAdar) \
     X(testRemoveEventsAndMembers_CreatorAdar) \
-    X(testEMPrintAllEventsMembersTests_CreatorLiranLavi) \
     X(checkNegativeDate_CreatorAdam) \
-    X(testNegativeYearTwo_CreatorAdam)
+    X(testNegativeYearTwo_CreatorAdam) \
+    X(testTickRemovePrintAndReturnVals_CreatorAdam)
 
 
 bool (*tests[])(void) = {
