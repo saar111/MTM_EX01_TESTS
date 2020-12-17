@@ -86,6 +86,11 @@ bool isFilePrintOutputCorrect(char *file_name, char *expected_output) {
     fread(buffer, sizeof(char), numbytes, infile);
     fclose(infile);
 
+    if(numbytes == 0 && strlen(expected_output) != 0) {
+		free(buffer);
+        return false;
+    }
+
 
     writeOutputToFile(file_name, expected_output);
     printf("<br>&nbsp;&nbsp;&nbsp;&nbsp;> Printing output: <a href='/staging/{STAGING_ID}/%s'>%s</a> | Expected output: <a href='/staging/{STAGING_ID}/expected_%s'>expected_%s</a> (Might be correct)",
