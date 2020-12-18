@@ -876,6 +876,58 @@ bool testEMPrintAllEventsBasicTests() {
 }
 
 
+/* ========== SEGEL TESTS ========== */
+bool testEventManagerCreateDestroy() {
+    bool result = true;
+    Date start_date = dateCreate(1, 12, 2020);
+    EventManager em = createEventManager(start_date);
+
+    ASSERT_TEST(em != NULL, destroyEventManagerCreateDestroy);
+    ASSERT_TEST(emGetEventsAmount(em) == 0, destroyEventManagerCreateDestroy);
+    ASSERT_TEST(emGetNextEvent(em) == NULL, destroyEventManagerCreateDestroy);
+
+    destroyEventManagerCreateDestroy:
+    destroyEventManager(em);
+    dateDestroy(start_date);
+    return result;
+
+}
+
+bool testAddEventByDiffAndSize() {
+    bool result = true;
+
+    Date start_date = dateCreate(1, 12, 2020);
+    EventManager em = createEventManager(start_date);
+
+    char *event_name = "event1";
+    ASSERT_TEST(emAddEventByDiff(em, event_name, 2, 1) == EM_SUCCESS, destroyAddEventByDiffAndSize);
+    ASSERT_TEST(emGetEventsAmount(em) == 1, destroyAddEventByDiffAndSize);
+    ASSERT_TEST(strcmp(event_name, emGetNextEvent(em)) == 0, destroyAddEventByDiffAndSize);
+
+    destroyAddEventByDiffAndSize:
+    dateDestroy(start_date);
+    destroyEventManager(em);
+    return result;
+}
+
+bool testEMTick() {
+    bool result = true;
+
+    Date start_date = dateCreate(1, 12, 2020);
+    EventManager em = createEventManager(start_date);
+
+    char *event_name = "event1";
+    ASSERT_TEST(emAddEventByDiff(em, event_name, 1, 1) == EM_SUCCESS, destroyEMTick);
+
+    ASSERT_TEST(emGetEventsAmount(em) == 1, destroyEMTick);
+    ASSERT_TEST(emTick(em, 2) == EM_SUCCESS, destroyEMTick);
+    ASSERT_TEST(emGetEventsAmount(em) == 0, destroyEMTick);
+    destroyEMTick:
+    dateDestroy(start_date);
+    destroyEventManager(em);
+    return result;
+}
+
 /* ========== Tests from more people ========== */
 
 bool testBigEventManager_CreatorYanTomsinsky() {
@@ -950,20 +1002,24 @@ bool testBigEventManager_CreatorYanTomsinsky() {
 
     emPrintAllEvents(em, "yan_file1.out.txt");
     ASSERT_TEST(isFilePrintOutputCorrect("yan_file1.out.txt",
-                             "event1,1.12.2020,yan1,yan5\nevent4,4.12.2020,yan1,yan5\nevent2,5.12.2020,yan1,yan2,yan3,yan4,yan5\nevent3,10.12.2020,yan1,yan2\n"), destroyDates2);
+                                         "event1,1.12.2020,yan1,yan5\nevent4,4.12.2020,yan1,yan5\nevent2,5.12.2020,yan1,yan2,yan3,yan4,yan5\nevent3,10.12.2020,yan1,yan2\n"),
+                destroyDates2);
 
     emPrintAllResponsibleMembers(em, "yan_file2.out.txt");
-    ASSERT_TEST(isFilePrintOutputCorrect("yan_file2.out.txt", "yan1,4\nyan5,3\nyan2,2\nyan3,1\nyan4,1\n"), destroyDates2);
+    ASSERT_TEST(isFilePrintOutputCorrect("yan_file2.out.txt", "yan1,4\nyan5,3\nyan2,2\nyan3,1\nyan4,1\n"),
+                destroyDates2);
 
     ASSERT_TEST(emTick(em, 4) == EM_SUCCESS, destroyDates2);
     ASSERT_TEST(emGetEventsAmount(em) == 2, destroyDates2);
 
     emPrintAllEvents(em, "yan_file3.out.txt");
     ASSERT_TEST(isFilePrintOutputCorrect("yan_file3.out.txt",
-                             "event2,5.12.2020,yan1,yan2,yan3,yan4,yan5\nevent3,10.12.2020,yan1,yan2\n"), destroyDates2);
+                                         "event2,5.12.2020,yan1,yan2,yan3,yan4,yan5\nevent3,10.12.2020,yan1,yan2\n"),
+                destroyDates2);
 
     emPrintAllResponsibleMembers(em, "yan_file4.out.txt");
-    ASSERT_TEST(isFilePrintOutputCorrect("yan_file4.out.txt", "yan1,2\nyan2,2\nyan3,1\nyan4,1\nyan5,1\n"), destroyDates2);
+    ASSERT_TEST(isFilePrintOutputCorrect("yan_file4.out.txt", "yan1,2\nyan2,2\nyan3,1\nyan4,1\nyan5,1\n"),
+                destroyDates2);
 
     ASSERT_TEST(emTick(em, 2) == EM_SUCCESS, destroyDates2);
     ASSERT_TEST(emGetEventsAmount(em) == 1, destroyDates2);
@@ -1392,6 +1448,10 @@ bool testTickRemovePrintAndReturnVals_CreatorAdam() {
     X(testEMGetNextEventGetsEventInCorrectOrder) \
     X(testEMPrintAllResponsibleMembersSimpleTests) \
     X(testEMPrintAllEventsBasicTests) \
+    X(testEventManagerCreateDestroy) \
+    X(testAddEventByDiffAndSize) \
+    X(testEMTick) \
+    X(testEMPrintAllEventsBasicTests) \
     X(testBigEventManager_CreatorYanTomsinsky) \
     X(testChangeDate_CreatorAdar) \
     X(testRemoveEventsAndMembers_CreatorAdar) \
@@ -1412,7 +1472,7 @@ const char *testNames[] = {
 #undef X
 };
 
-#define NUMBER_TESTS 37
+#define NUMBER_TESTS 40
 
 int main(int argc, char **argv) {
     if (argc == 1) {
